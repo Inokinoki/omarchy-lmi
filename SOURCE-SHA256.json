@@ -36,7 +36,7 @@
  "hardware/lmi-base/port-source/iio-sensor-proxy-lmi/PKGBUILD": "0d12663a36297a7644457caee3e22bc176973dcbbd9ba2e5ae38e13153289a3f",
  "hardware/lmi-base/port-source/libssc-lmi/PKGBUILD": "e68afed41f907e2f117fc8a3b2c5977864ca59de2ab7a1f74ae9e431ca2944b9",
  "hardware/lmi-base/port-source/linux-lmi/PKGBUILD": "0b117d022ae87f3fba6ed1d0f214414f780f1e9039176da6674bbd10acef4b76",
- "hardware/lmi-base/port-source/linux-lmi/build-kernel.sh": "2fe8db8e09a795314ab47129b061e4759042719d534926cf3aa1c4ef8fc0e53d",
+ "hardware/lmi-base/port-source/linux-lmi/build-kernel.sh": "421ade780facf7ef2acbb39af28a8228cfa1ebf5b514daa4196d2e37ad31c235",
  "hardware/lmi-base/port-source/linux-lmi/clock-policy.txt": "89c76b0ea050e71af7c559cb4c9a37e7d3332419e5962316ae8b4a9cf70d0632",
  "hardware/lmi-base/port-source/linux-lmi/config-apollo-reference": "755aaa5e6193e5471806c5052d6036c82ac464272cb91a772d0a427240badf77",
  "hardware/lmi-base/port-source/lmi-bluetooth-address/PKGBUILD": "cd1aeb9ee4b056cd42d9570168fb2db02e4b2e01597d7af8bb1a724bf03c26cb",
