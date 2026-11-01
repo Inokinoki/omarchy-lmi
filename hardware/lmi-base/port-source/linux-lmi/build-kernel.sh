@@ -32,7 +32,13 @@ if [ -z "$EXPECTED" ]; then
 fi
 printf '%s  %s\n' "$EXPECTED" "$ARCHIVE" | sha512sum -c -
 if [ ! -d "$BUILD/linux-$COMMIT" ]; then
-    tar -xzf "$ARCHIVE" -C "$BUILD"
+    # The GitHub archive's top-level directory carries the repository's
+    # display name (the canonical URL is a redirect), not a fixed name.
+    # Normalize it so the rest of the script has one known path.
+    tmp=$(mktemp -d "$BUILD/extract.XXXXXX")
+    tar -xzf "$ARCHIVE" -C "$tmp"
+    mv "$tmp"/*/ "$BUILD/linux-$COMMIT"
+    rmdir "$tmp"
 fi
 cd "$BUILD/linux-$COMMIT"
 # Patch framework: no patches are carried initially. The v6.19 tree already
