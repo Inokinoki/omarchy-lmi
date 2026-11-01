@@ -30,18 +30,26 @@ postmarketOS wiki page for xiaomi-lmi, not this project's own evidence.
 
 1. Cross-compile with `hardware/lmi-base/port-source/linux-lmi/build-kernel.sh`
    on an aarch64-capable Linux host (or in a container), after pinning the
-   tarball sha512 (`LMI_TARBALL_SHA512`).
+   tarball sha512 (`LMI_TARBALL_SHA512`). The CI `kernel` job produces the
+   same payload plus the packaged assets tarball.
 2. Extract device firmware into `packaging/firmware-model/`'s private-input
    tarball; fill the `SKIP` sha512 pins in `packaging/firmware.PKGBUILD`,
    `lmi-dsp` and `lmi-modem` PKGBUILDs.
-3. Read `/sys/firmware/devicetree/base/model` on the booted kernel and fix
+3. Unpack the stock lmi boot.img (`unpack_bootimg.py --boot_img stock.img`)
+   and compare header base/offsets and the bootloader command line against
+   `hardware/lmi-base/system/build-bootimg.sh` defaults; adjust the script
+   if they differ.
+4. Read `/sys/firmware/devicetree/base/model` on the booted kernel and fix
    the model assert in `hardware/lmi-base/system/install-persistent` if the
    string differs from `POCO F2 Pro`.
-4. Build the Android boot image (Image.gz + `sm8250-xiaomi-lmi.dtb`) and the
-   SquashFS/overlay root per docs/architecture.md; flash via fastboot with a
-   preserved recovery route.
-5. Accept: cold boot to compositor, panel at 60 Hz, FocalTech touch across
-   rotation, freedreno GL, ath11k scan/join on both bands.
+5. Build the real base SquashFS (Arch Linux ARM aarch64 rootfs + device
+   packages + private firmware inputs), then assemble the initramfs with
+   `build-initramfs.sh` (it bakes the base checksum) and the boot image with
+   `build-bootimg.sh`; `fastboot boot` the image first, then flash `boot`
+   and an empty `dtbo`, with a preserved recovery route.
+6. Accept: cold boot to compositor, panel at 60 Hz, FocalTech touch across
+   rotation, freedreno GL, ath11k scan/join on both bands, and the
+   fatal-path reboot into the bootloader.
 
 ## M2 checklist (sensors, audio, clock)
 

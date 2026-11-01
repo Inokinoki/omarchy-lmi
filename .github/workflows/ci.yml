@@ -106,3 +106,91 @@ jobs:
             lmi-kernel-assets.sha512
             lmi-kernel-assets-*.tar.xz
           if-no-files-found: error
+
+  # On demand, after the kernel job: assemble the boot initramfs and an
+  # Android boot image, then round-trip the header. The base SquashFS is a
+  # FIXTURE: the real rootfs and its private firmware inputs never enter CI.
+  # A fixture boot image boots, fails the init's own checks ('systemd
+  # missing') and reboots to the bootloader; it is a pipeline test, not an
+  # installation image.
+  bootimage:
+    if: github.event_name == 'workflow_dispatch'
+    needs: kernel
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download the kernel payload
+        uses: actions/download-artifact@v4
+        with:
+          name: lmi-kernel-artifacts
+          path: kernel
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            gcc-aarch64-linux-gnu libc6-dev-arm64-cross cpio gzip squashfs-tools
+      - name: Fetch mkbootimg at the pinned commit
+        run: |
+          git init mkbootimg
+          cd mkbootimg
+          git remote add origin https://android.googlesource.com/platform/system/tools/mkbootimg
+          git fetch --depth 1 origin d2bb0af5ba6d3198a3e99529c97eda1be0b5a093
+          git checkout -q FETCH_HEAD
+      - name: Build the pinned busybox
+        run: |
+          set -euo pipefail
+          export BUSYBOX_VER=1.37.0
+          export BUSYBOX_BUILD="$PWD/build/busybox"
+          mkdir -p "$BUSYBOX_BUILD/downloads"
+          curl --fail --location --retry 3 \
+            --output "$BUSYBOX_BUILD/downloads/busybox-$BUSYBOX_VER.tar.bz2" \
+            "https://busybox.net/downloads/busybox-$BUSYBOX_VER.tar.bz2"
+          sha512sum "$BUSYBOX_BUILD/downloads/busybox-$BUSYBOX_VER.tar.bz2" | tee busybox.sha512
+          export BUSYBOX_SHA512="$(awk '{print $1}' busybox.sha512)"
+          "$GITHUB_WORKSPACE/hardware/lmi-base/system/build-busybox.sh"
+      - name: Assemble a fixture base and the boot image
+        run: |
+          set -euo pipefail
+          export BUSYBOX_SHA512="$(awk '{print $1}' busybox.sha512)"
+          export BUSYBOX_BUILD="$PWD/build/busybox"
+          export BUSYBOX_VER=1.37.0
+          fdir=$(mktemp -d)
+          mkdir -p "$fdir/root"
+          chmod 0755 "$fdir/root"
+          printf 'omarchy-lmi-slot-v1\n' > "$fdir/root/.omarchy-slot-v1"
+          mksquashfs "$fdir/root" "$fdir/base.sqfs" -noappend -comp zstd >/dev/null
+          "$GITHUB_WORKSPACE/hardware/lmi-base/system/build-initramfs.sh" \
+            --repo "$GITHUB_WORKSPACE" \
+            --slot ci-fixture \
+            --base-squashfs "$fdir/base.sqfs" \
+            --busybox "$BUSYBOX_BUILD/busybox-$BUSYBOX_VER/busybox" \
+            --output build/initramfs-ci-fixture.img
+          "$GITHUB_WORKSPACE/hardware/lmi-base/system/build-bootimg.sh" \
+            --kernel kernel/build/artifacts/Image.gz \
+            --dtb kernel/build/artifacts/sm8250-xiaomi-lmi.dtb \
+            --ramdisk build/initramfs-ci-fixture.img \
+            --mkbootimg mkbootimg/mkbootimg.py \
+            --output build/boot-ci-fixture.img
+      - name: Round-trip the boot image header
+        run: |
+          set -euo pipefail
+          python3 mkbootimg/unpack_bootimg.py \
+            --boot_img build/boot-ci-fixture.img --out unpacked --format mkbootimg \
+            | tee unpacked-args
+          test -f unpacked/kernel
+          test -f unpacked/ramdisk
+          test -f unpacked/dtb
+          grep -q -- '--header_version 2' unpacked-args
+          grep -q -- '--pagesize 0x00001000' unpacked-args
+          grep -q -- '--cmdline console=ttyMSM0,115200n8' unpacked-args
+          grep -q -- '--dtb' unpacked-args
+      - name: Upload the fixture boot image
+        uses: actions/upload-artifact@v4
+        with:
+          name: lmi-bootimage-fixture
+          path: |
+            build/boot-ci-fixture.img
+            build/initramfs-ci-fixture.img
+            busybox.sha512
+          if-no-files-found: error

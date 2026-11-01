@@ -14,7 +14,7 @@ architecturally identical (SSC over hexagonrpcd + libssc, iio-sensor-proxy
 on top); lmi needs its own `slpi.mbn` and sensor registry, extracted on the
 device.
 
-What is new for this port: `port-source/linux-lmi/` builds the
+What is new for this port: `system/` carries the boot-chain assembly (`build-busybox.sh`, `build-initramfs.sh`, `build-bootimg.sh`, `reboot-bootloader.c`), exercised against a fixture base by the CI bootimage job. `port-source/linux-lmi/` builds the
 yuweiyuan8 v6.19 close-to-mainline kernel carrying the `sm8250-xiaomi-lmi`
 device tree, the Samsung AMS667UU01 panel driver and the FocalTech FTS
 touch driver. No kernel patches are carried initially; the build script
