@@ -1,13 +1,17 @@
 #!/bin/bash
 # Assemble the Android boot image for the lmi boot partition: Android boot
 # header v2, page size 4096, base 0x00000000, Image.gz kernel, device-tree
-# blob and the boot initramfs. The header parameters come from the LineageOS
-# device tree for this device (android_device_xiaomi_sm8250-common
-# BoardConfigCommon, lineage-23.2: BOARD_BOOT_HEADER_VERSION 2,
-# BOARD_KERNEL_BASE 0x00000000, BOARD_KERNEL_PAGESIZE 4096, no separate
-# offset overrides). Flashing an empty DTBO alongside it is part of
-# installation (see docs/status.md); this script never writes a device
-# partition.
+# blob and the boot initramfs. The header parameters and the default kernel
+# command line come from the LineageOS device tree for this device
+# (android_device_xiaomi_sm8250-common BoardConfigCommon, lineage-23.2:
+# BOARD_BOOT_HEADER_VERSION 2, BOARD_KERNEL_BASE 0x00000000,
+# BOARD_KERNEL_PAGESIZE 4096, no separate offset overrides, and the stock
+# BOARD_KERNEL_CMDLINE verbatim). The mainline kernel ignores the
+# downstream-only arguments; carrying them keeps the boot environment close
+# to what ABL and the device normally see. `console=` is prepended so the
+# initramfs fatal path is visible on the serial console.
+# Flashing an empty DTBO alongside it is part of installation (see
+# docs/status.md); this script never writes a device partition.
 #
 #   --kernel PATH      Image.gz from build-kernel.sh
 #   --dtb PATH         sm8250-xiaomi-lmi.dtb
@@ -17,15 +21,12 @@
 #   --output PATH      boot image to write
 #   --cmdline STR      kernel command line (default below)
 #
-# The default command line is a minimal mainline subset. The stock Android
-# command line in the LineageOS BoardConfigCommon (androidboot.*,
-# lpm_levels.sleep_disabled, msm_rtb.filter, swiotlb, ...) targets the
-# downstream kernel and Android init and is deliberately not carried.
 # TODO(M1): compare this header against the stock lmi boot.img
 # (unpack_bootimg.py --boot_img stock.img) at first bring-up; adjust --base
 # or offsets here if the device refuses the image.
 set -euo pipefail
-kernel='' dtb='' ramdisk='' mkbootimg='' output='' cmdline='console=ttyMSM0,115200n8'
+kernel='' dtb='' ramdisk='' mkbootimg='' output=''
+cmdline='console=ttyMSM0,115200n8 androidboot.hardware=qcom androidboot.console=ttyMSM0 androidboot.memcg=1 lpm_levels.sleep_disabled=1 msm_rtb.filter=0x237 service_locator.enable=1 androidboot.usbcontroller=a600000.dwc3 swiotlb=2048 loop.max_part=7 cgroup.memory=nokmem,nosocket reboot=panic_warm androidboot.fstab_suffix=qcom androidboot.init_fatal_reboot_target=recovery'
 while [ $# -gt 0 ]; do
     case "$1" in
         --kernel) kernel=$2; shift 2 ;;

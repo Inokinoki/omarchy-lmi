@@ -64,10 +64,10 @@ Filled from the LineageOS trees for this device (lineage-23.2), verified
 - Boot image parameters: `android_device_xiaomi_sm8250-common`
   `BoardConfigCommon.mk` — `BOARD_BOOT_HEADER_VERSION := 2`,
   `BOARD_KERNEL_BASE := 0x00000000`, `BOARD_KERNEL_PAGESIZE := 4096`, no
-  separate offset overrides. Carried into
-  `hardware/lmi-base/system/build-bootimg.sh`. The stock Android command
-  line recorded there is deliberately not carried (downstream-kernel and
-  Android-init specific).
+  separate offset overrides, and the stock `BOARD_KERNEL_CMDLINE`, carried
+  verbatim (with `console=` prepended) into
+  `hardware/lmi-base/system/build-bootimg.sh`. The mainline kernel ignores
+  the downstream-only arguments.
 - Firmware provenance: the device-extracted firmware set is
   [yuweiyuan8/firmware-xiaomi-lmi](https://github.com/yuweiyuan8/firmware-xiaomi-lmi)
   @ `dde156380b2ac372619ed332dbe60640b838b7fe` (main, resolved 2026-11-01),

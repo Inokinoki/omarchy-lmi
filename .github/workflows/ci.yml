@@ -183,7 +183,10 @@ jobs:
           test -f unpacked/dtb
           grep -q -- '--header_version 2' unpacked-args
           grep -q -- '--pagesize 0x00001000' unpacked-args
-          grep -q -- '--cmdline console=ttyMSM0,115200n8' unpacked-args
+          grep -q -- '--base 0x00000000' unpacked-args
+          grep -q 'console=ttyMSM0,115200n8' unpacked-args
+          grep -q 'androidboot.hardware=qcom' unpacked-args
+          grep -q 'reboot=panic_warm' unpacked-args
           grep -q -- '--dtb' unpacked-args
       - name: Upload the fixture boot image
         uses: actions/upload-artifact@v4
