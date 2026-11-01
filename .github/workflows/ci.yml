@@ -80,6 +80,22 @@ jobs:
           export LMI_JOBS="$(nproc)"
           export LMI_TARBALL_SHA512="$(awk '{print $1}' linux-tarball.sha512)"
           "$LMI_REPO/hardware/lmi-base/port-source/linux-lmi/build-kernel.sh"
+      - name: Package the kernel assets tarball
+        run: |
+          set -euo pipefail
+          ver=$(grep -oP '(?<=^pkgver=).*' repo/hardware/lmi-base/port-source/linux-lmi/PKGBUILD)
+          rel=$(grep -oP '(?<=^pkgrel=).*' repo/hardware/lmi-base/port-source/linux-lmi/PKGBUILD)
+          name="lmi-kernel-assets-$ver-$rel"
+          work="$(mktemp -d)"
+          mkdir -p "$work/$name/assets/boot/lmi" "$work/$name/assets/lib/modules"
+          cp build/artifacts/Image.gz build/artifacts/sm8250-xiaomi-lmi.dtb "$work/$name/assets/boot/lmi/"
+          cp build/kernel-out/.config "$work/$name/assets/boot/lmi/config"
+          cp -a build/artifacts/lib/modules/* "$work/$name/assets/lib/modules/"
+          cp "build/linux-$KERNEL_COMMIT/COPYING" "$work/$name/assets/COPYING"
+          # depmod regenerates these on the target; the package recipe excludes them.
+          find "$work/$name/assets/lib/modules" -type l \( -name build -o -name source \) -delete
+          tar -cJf "$name.tar.xz" -C "$work" "$name"
+          sha512sum "$name.tar.xz" | tee lmi-kernel-assets.sha512
       - name: Upload the boot payload
         uses: actions/upload-artifact@v4
         with:
@@ -87,4 +103,6 @@ jobs:
           path: |
             build/artifacts/
             linux-tarball.sha512
+            lmi-kernel-assets.sha512
+            lmi-kernel-assets-*.tar.xz
           if-no-files-found: error
