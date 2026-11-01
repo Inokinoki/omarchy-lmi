@@ -1,9 +1,13 @@
 #!/bin/bash
 # Assemble the Android boot image for the lmi boot partition: Android boot
-# header v2, page size 4096, Image.gz kernel, device-tree blob and the boot
-# initramfs. This is the same shape the apollo port booted on the shared
-# kona ABL. Flashing an empty DTBO alongside it is part of installation
-# (see docs/status.md); this script never writes a device partition.
+# header v2, page size 4096, base 0x00000000, Image.gz kernel, device-tree
+# blob and the boot initramfs. The header parameters come from the LineageOS
+# device tree for this device (android_device_xiaomi_sm8250-common
+# BoardConfigCommon, lineage-23.2: BOARD_BOOT_HEADER_VERSION 2,
+# BOARD_KERNEL_BASE 0x00000000, BOARD_KERNEL_PAGESIZE 4096, no separate
+# offset overrides). Flashing an empty DTBO alongside it is part of
+# installation (see docs/status.md); this script never writes a device
+# partition.
 #
 #   --kernel PATH      Image.gz from build-kernel.sh
 #   --dtb PATH         sm8250-xiaomi-lmi.dtb
@@ -13,10 +17,13 @@
 #   --output PATH      boot image to write
 #   --cmdline STR      kernel command line (default below)
 #
-# TODO(M1): before the first flash, unpack the stock lmi boot.img with the
-# same tool (unpack_bootimg.py --boot_img stock.img) and compare base,
-# kernel_offset, tags and the bootloader-supplied command line. If the
-# device refuses this image, adjust those offsets here.
+# The default command line is a minimal mainline subset. The stock Android
+# command line in the LineageOS BoardConfigCommon (androidboot.*,
+# lpm_levels.sleep_disabled, msm_rtb.filter, swiotlb, ...) targets the
+# downstream kernel and Android init and is deliberately not carried.
+# TODO(M1): compare this header against the stock lmi boot.img
+# (unpack_bootimg.py --boot_img stock.img) at first bring-up; adjust --base
+# or offsets here if the device refuses the image.
 set -euo pipefail
 kernel='' dtb='' ramdisk='' mkbootimg='' output='' cmdline='console=ttyMSM0,115200n8'
 while [ $# -gt 0 ]; do
@@ -42,6 +49,7 @@ python3 "$mkbootimg" \
     --dtb "$dtb" \
     --header_version 2 \
     --pagesize 4096 \
+    --base 0x00000000 \
     --cmdline "$cmdline" \
     --output "$output"
-echo "BOOT IMAGE COMPLETE: $output (header v2, page 4096, cmdline: $cmdline)"
+echo "BOOT IMAGE COMPLETE: $output (header v2, page 4096, base 0x0, cmdline: $cmdline)"

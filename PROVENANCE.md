@@ -56,6 +56,32 @@ What this repository is built from, and what status each source carries.
   and [yuweiyuan8/firmware-xiaomi-lmi](https://github.com/yuweiyuan8/firmware-xiaomi-lmi)
   as the firmware layout reference.
 
+## LineageOS device tree values
+
+Filled from the LineageOS trees for this device (lineage-23.2), verified
+2026-11-01:
+
+- Boot image parameters: `android_device_xiaomi_sm8250-common`
+  `BoardConfigCommon.mk` — `BOARD_BOOT_HEADER_VERSION := 2`,
+  `BOARD_KERNEL_BASE := 0x00000000`, `BOARD_KERNEL_PAGESIZE := 4096`, no
+  separate offset overrides. Carried into
+  `hardware/lmi-base/system/build-bootimg.sh`. The stock Android command
+  line recorded there is deliberately not carried (downstream-kernel and
+  Android-init specific).
+- Firmware provenance: the device-extracted firmware set is
+  [yuweiyuan8/firmware-xiaomi-lmi](https://github.com/yuweiyuan8/firmware-xiaomi-lmi)
+  @ `dde156380b2ac372619ed332dbe60640b838b7fe` (main, resolved 2026-11-01),
+  whose `lib/firmware/qcom/sm8250/xiaomi/lmi/` matches
+  `packaging/firmware-model/files.txt` one for one. The LineageOS vendor
+  blob repository ([TheMuppets/proprietary_vendor_xiaomi_lmi](https://github.com/TheMuppets/proprietary_vendor_xiaomi_lmi)
+  @ `bfe578af3b2ddcec5428010c862bbcd49401ca21`, lineage-23.2) is the
+  reference for userspace-adjacent firmware such as the TFA9874 speaker
+  configuration (`vendor/firmware/tfa98xx.cnt`), noted in the M2 audio
+  plan. Neither repository's binaries are stored here.
+- Device-tree model string: `model = "Xiaomi POCO F2 Pro"` in the pinned
+  mainline DTS; pre-filled into
+  `hardware/lmi-base/system/install-persistent`.
+
 ## Hardware comparison reference
 
 The LineageOS device trees for both devices —

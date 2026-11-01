@@ -32,16 +32,19 @@ postmarketOS wiki page for xiaomi-lmi, not this project's own evidence.
    on an aarch64-capable Linux host (or in a container), after pinning the
    tarball sha512 (`LMI_TARBALL_SHA512`). The CI `kernel` job produces the
    same payload plus the packaged assets tarball.
-2. Extract device firmware into `packaging/firmware-model/`'s private-input
-   tarball; fill the `SKIP` sha512 pins in `packaging/firmware.PKGBUILD`,
-   `lmi-dsp` and `lmi-modem` PKGBUILDs.
-3. Unpack the stock lmi boot.img (`unpack_bootimg.py --boot_img stock.img`)
-   and compare header base/offsets and the bootloader command line against
-   `hardware/lmi-base/system/build-bootimg.sh` defaults; adjust the script
-   if they differ.
-4. Read `/sys/firmware/devicetree/base/model` on the booted kernel and fix
-   the model assert in `hardware/lmi-base/system/install-persistent` if the
-   string differs from `POCO F2 Pro`.
+2. Assemble the firmware tarball from the pinned community device-extracted
+   set (yuweiyuan8/firmware-xiaomi-lmi @ `dde15638`, see
+   `packaging/firmware-model/files.txt`) or from the unlocked device, and
+   fill the `SKIP` sha512 pins in `packaging/firmware.PKGBUILD`, `lmi-dsp`
+   and `lmi-modem` PKGBUILDs. Prefer the device extraction on any mismatch.
+3. Boot image parameters are pre-filled from the LineageOS device tree
+   (sm8250-common `BoardConfigCommon`, lineage-23.2: header v2, page 4096,
+   base 0x0). Confirm cheaply by unpacking a stock lmi boot.img
+   (`unpack_bootimg.py --boot_img stock.img`) and comparing against
+   `hardware/lmi-base/system/build-bootimg.sh`.
+4. The model assert is pre-filled with `Xiaomi POCO F2 Pro`, the `model`
+   property of the pinned mainline DTS; confirm it on the device at first
+   boot and fix `hardware/lmi-base/system/install-persistent` if it differs.
 5. Build the real base SquashFS (Arch Linux ARM aarch64 rootfs + device
    packages + private firmware inputs), then assemble the initramfs with
    `build-initramfs.sh` (it bakes the base checksum) and the boot image with

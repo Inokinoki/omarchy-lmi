@@ -8,12 +8,14 @@ url='https://github.com/yuweiyuan8/firmware-xiaomi-lmi'
 license=('LicenseRef-proprietary')
 depends=('linux-firmware-qcom')
 options=('!strip' '!debug')
-# The firmware tarball is extracted from an unlocked POCO F2 Pro by the owner
-# (M1 checklist in docs/status.md). Pin its sha512 here once it exists; SKIP
-# is an explicit pending marker, not a permanent state.
+# The firmware tarball is assembled from the pinned community
+# device-extracted set (see packaging/firmware-model/files.txt for the
+# commit) or extracted from an unlocked POCO F2 Pro by the owner (M1
+# checklist in hardware/lmi-base/docs/status.md). Pin its sha512 here once
+# it exists; SKIP is an explicit pending marker, not a permanent state.
 source=(
   "firmware-xiaomi-lmi-0.1.tar.gz::file://$startdir/private-inputs/firmware-xiaomi-lmi-0.1.tar.gz")
-sha512sums=('SKIP')  # pending M1 device extraction
+sha512sums=('SKIP')  # pending M1 assembly from the pinned source or device extraction
 package() {
   while IFS= read -r name; do
     [[ -n $name && $name != \#* ]] || continue

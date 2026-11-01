@@ -17,8 +17,10 @@ p.add_argument('--accept-data-loss',default='')
 a=p.parse_args()
 assert os.geteuid()==0,'Root required'
 assert not Path('/run/lmi-persistent').exists(),'Refusing to erase the running root'
-# TODO(M1): confirm the exact device-tree model string on the POCO F2 Pro before flashing.
-assert Path('/sys/firmware/devicetree/base/model').read_bytes().rstrip(b'\0')==b'POCO F2 Pro','Exact tested model required'
+# The model string comes from the pinned mainline DTS `model` property
+# ("Xiaomi POCO F2 Pro" in sm8250-xiaomi-lmi.dts at the build-kernel.sh
+# commit). Confirm it on the device at first boot.
+assert Path('/sys/firmware/devicetree/base/model').read_bytes().rstrip(b'\0')==b'Xiaomi POCO F2 Pro','Exact tested model required'
 manifest=json.loads(a.manifest.read_text())
 for name,file in [('base',a.base),('boot',a.boot)]:
     with file.open('rb') as f: digest=hashlib.file_digest(f,'sha256').hexdigest()

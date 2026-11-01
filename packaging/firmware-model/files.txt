@@ -1,8 +1,14 @@
-# Firmware files extracted from the POCO F2 Pro (lmi), installed by
-# lmi-device-firmware. Paths follow the community mainline layout
-# (qcom/sm8250/xiaomi/lmi) used by the yuweiyuan8/firmware-xiaomi-lmi
-# repository. The tarball is a private image-build input; blobs are never
-# stored in this repository.
+# Firmware files for the POCO F2 Pro (lmi), installed by
+# lmi-device-firmware. The file list matches, one for one, the community
+# device-extracted set at
+#   https://github.com/yuweiyuan8/firmware-xiaomi-lmi
+#   pinned commit dde156380b2ac372619ed332dbe60640b838b7fe (main,
+#   2026-11 resolution), directory lib/firmware/qcom/sm8250/xiaomi/lmi.
+# The private-input tarball is assembled from a clone of that pinned
+# commit, or from the owner's own extraction of the unlocked device; blobs
+# are never stored in this repository. Verify the clone against the owner's
+# device at first bring-up and prefer the device extraction on any
+# mismatch.
 #
 # Off the shelf from linux-firmware, deliberately NOT packaged here:
 #   qcom/a650_gmu.bin, qcom/a650_sqe.fw   (Adreno 650 GMU/SQE)

@@ -19,3 +19,10 @@ Deliverables expected in this directory once audio is brought up: a UCM2
 topology (`HiFi`, `VoiceCall` as applicable) named for the lmi sound card,
 plus any PCM-format overrides the WCD9380 path needs. Nothing in this
 directory claims tested behavior.
+
+The TFA9874 speaker configuration blob (`vendor/firmware/tfa98xx.cnt`) is
+carried in the LineageOS vendor tree for this device
+(TheMuppets/proprietary_vendor_xiaomi_lmi, lineage-23.2, commit
+`bfe578af3b2ddcec5428010c862bbcd49401ca21`); it is a candidate private
+audio input for M2, subject to the same pinned-source-or-device-extraction
+rule as the other firmware.
