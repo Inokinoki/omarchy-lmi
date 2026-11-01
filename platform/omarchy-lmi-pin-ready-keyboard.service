@@ -1,0 +1,6 @@
+[Unit]
+Description=Refresh LMI keyboard after owner PIN enrollment
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/omarchy/lmi/pin-ready-keyboard

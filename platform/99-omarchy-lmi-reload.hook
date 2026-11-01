@@ -1,0 +1,10 @@
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = omarchy-lmi
+
+[Action]
+Description = Refreshing the LMI compositor after package replacement
+When = PostTransaction
+Exec = /usr/lib/omarchy/lmi/reload-live-compositor

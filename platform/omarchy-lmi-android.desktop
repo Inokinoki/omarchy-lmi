@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Android Apps
+Comment=Open Android applications using the selected installation profile
+Exec=omarchy-lmi-android start
+Icon=waydroid
+Type=Application
+Categories=Utility;
+StartupNotify=true

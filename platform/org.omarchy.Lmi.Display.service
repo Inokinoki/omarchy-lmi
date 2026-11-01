@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=org.omarchy.Lmi.Display
+Exec=/usr/bin/omarchy-lmi-display serve
+SystemdService=omarchy-lmi-display.service

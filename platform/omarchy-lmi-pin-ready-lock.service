@@ -1,0 +1,7 @@
+[Unit]
+Description=Request the phone lock after successful local PIN enrollment
+After=omarchy-lmi-pin-ready-keyboard.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/omarchy/lmi/pin-ready-lock

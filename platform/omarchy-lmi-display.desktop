@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Pantalla LMI
+Comment=Orientación automática, bloqueo de giro y frecuencia de pantalla
+Exec=omarchy-lmi-display settings
+Icon=preferences-desktop-display
+Terminal=false
+Categories=Settings;HardwareSettings;

@@ -1,0 +1,27 @@
+# Firmware files extracted from the POCO F2 Pro (lmi), installed by
+# lmi-device-firmware. Paths follow the community mainline layout
+# (qcom/sm8250/xiaomi/lmi) used by the yuweiyuan8/firmware-xiaomi-lmi
+# repository. The tarball is a private image-build input; blobs are never
+# stored in this repository.
+#
+# Off the shelf from linux-firmware, deliberately NOT packaged here:
+#   qcom/a650_gmu.bin, qcom/a650_sqe.fw   (Adreno 650 GMU/SQE)
+#   ath11k/QCA6390/hw2.0/*                (Wi-Fi)
+#   qca/htbtfw20.tlv, qca/htnv20.bin      (Bluetooth, QCA6390)
+#
+# qcom/a650_zap.mbn is device-extracted: the generic RB5 zap shader in
+# linux-firmware must be checked against what the device accepts, so the
+# extracted variant ships in updates/ to win the firmware search order.
+qcom/sm8250/xiaomi/lmi/a650_zap.mbn
+qcom/sm8250/xiaomi/lmi/adsp.mbn
+qcom/sm8250/xiaomi/lmi/adspr.jsn
+qcom/sm8250/xiaomi/lmi/adspua.jsn
+qcom/sm8250/xiaomi/lmi/cdsp.mbn
+qcom/sm8250/xiaomi/lmi/cdspr.jsn
+qcom/sm8250/xiaomi/lmi/slpi.mbn
+qcom/sm8250/xiaomi/lmi/slpir.jsn
+qcom/sm8250/xiaomi/lmi/slpius.jsn
+qcom/sm8250/xiaomi/lmi/venus.mbn
+qcom/sm8250/xiaomi/lmi/ipa_fws.mbn
+# TODO(M1): confirm the exact file list against the extracted set before the
+# first image build; adjust additions/removals there, not ad hoc in the recipe.

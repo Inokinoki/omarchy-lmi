@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Configurar Omarchy LMI
+Comment=Configura el PIN táctil de Omarchy LMI
+Exec=omarchy-lmi-setup
+Icon=preferences-system
+Type=Application
+Categories=Settings;System;
+StartupNotify=true

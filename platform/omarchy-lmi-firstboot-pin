@@ -1,0 +1,9 @@
+#!/bin/bash -p
+# The one-time grant opens only the fixed, trusted local PIN setup service.
+set -euo pipefail
+export PATH=/usr/bin
+[[ $EUID == 0 && ${SUDO_USER:-} == lmi && $# == 0 ]]
+marker=/etc/omarchy-lmi/firstboot-pin-needed
+[[ -f $marker && ! -L $marker && $(stat --format='%u:%a' -- "$marker") == 0:600 ]]
+[[ ! -e /var/lib/omarchy-lmi/pin-status/1001 ]]
+exec systemctl start --no-block omarchy-lmi-owner-pin-setup.service

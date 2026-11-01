@@ -1,0 +1,13 @@
+#!/bin/bash
+set -euo pipefail
+mkdir -p /mnt/modemfw /run/lmi-firmware/postmarketos
+mountpoint -q /mnt/modemfw || mount -o ro /dev/disk/by-partlabel/modem /mnt/modemfw
+test -f /mnt/modemfw/image/venus.mdt
+install -m644 /mnt/modemfw/image/venus.mdt /run/lmi-firmware/postmarketos/venus.mbn
+for blob in /mnt/modemfw/image/venus.b*; do
+    [ -f "$blob" ] && install -m644 "$blob" /run/lmi-firmware/postmarketos/
+done
+echo /run/lmi-firmware > /sys/module/firmware_class/parameters/path
+modprobe qcom_iris
+udevadm settle --timeout=20
+echo 'Iris initialized using this phone firmware from the read-only modem partition'

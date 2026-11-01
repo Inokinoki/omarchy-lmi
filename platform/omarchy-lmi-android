@@ -1,0 +1,5 @@
+#!/bin/bash
+# omarchy:summary=Open Android, confirm APK installation, or stop the Android session
+# omarchy:args=[start|prepare|install <apk>|stop|status]
+set -euo pipefail
+exec /usr/lib/omarchy/lmi/android-client "$@"

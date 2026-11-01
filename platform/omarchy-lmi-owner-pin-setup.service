@@ -1,0 +1,11 @@
+[Unit]
+Description=Create the owner's touch PIN on the phone
+After=display-manager.service
+OnSuccess=omarchy-lmi-pin-ready-lock.service
+
+[Service]
+Type=exec
+ExecStart=/usr/lib/omarchy/lmi/owner-pin-setup
+UMask=0077
+LimitCORE=0
+TimeoutStartSec=infinity

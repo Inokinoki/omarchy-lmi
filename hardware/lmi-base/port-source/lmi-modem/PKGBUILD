@@ -1,0 +1,109 @@
+pkgname=lmi-modem
+pkgver=1.0
+pkgrel=4
+pkgdesc='LMI SDX55 firmware and userspace services, with RAM-only EFS test mode'
+arch=(aarch64)
+url='https://github.com/linux-msm/tqftpserv'  # modem stack; firmware input is device-private (M1)
+license=(GPL-2.0-only BSD-3-Clause LicenseRef-proprietary)
+depends=(glibc glib2 libqrtr-glib lmi-qcom-core pd-mapper-lmi modemmanager-lmi libqmi util-linux systemd zstd)
+makedepends=(gcc linux-api-headers pkgconf)
+options=(!strip)
+source=(
+  pm_service_native.c
+  mdm_helper_native.c
+  mhi_efs_sync.c
+  diag_reader.c
+  adsp_diag.c
+  pm-service-native.service
+  mdm-helper-native.service
+  mhi-efs-sync.service
+  adsp-diag.service
+  tqftpserv.c
+  translate.c
+  zstd-decompress.c
+  list.h
+  translate.h
+  zstd-decompress.h
+  tqftpserv-sdx55.service
+  lmi-efs-extract
+  lmi-efs-extract.service
+  lmi-uim-provision
+  77-mm-ignore-sdx55-efs.rules
+  77-mm-sdx55-fusion.rules
+  rmnet.conf
+  lmi-modem-fw-1.0.tar.gz
+  lmi-modem-start.service
+  10-lmi-modem-ordering.conf
+  lmi-modem-rproc.service lmi-modem-power-on zz-lmi-multiplex.conf
+  20-lmi-manual-power.conf)
+sha512sums=(
+  461490e2f8df52950ead711e7e5d09440872ef9ebcb7c324ef1f025824a8b964bfb2b7fadcba633e327c75a294ae8eb381eea198937daab7de721d9d96395cce
+  188fb461564733ec749a839b2e5ff833104f5a169e4e184cec9a07b8496ff527a60f797faf9e5157652554c99b1c4b84c821892aa0ac3d92e6400b20615054e1
+  b4f08cec2c6169c044ddb403bb18f3d3724ae8430cb01b468159dec13e5733e54ff1214c4b45959b86a6fec0192e324f1ef20ca1542d2c9d4ccb16a706998e10
+  68aab4162d32eb9566fc726bd0b39083700e64afda6363e894ca01b4134728b9bdc3a5a34be34fe255e925061ae7d1c352bf8b1ec10dabe60cc6aa5c178677ad
+  e8f10fd20c8a77902e502cc4f7502a38beb8c952045275d8973f0151c76472b0639b1669cd1adfc4e3eccdc00c1cc704cd90e7656512e4fd7bb7440d6872c587
+  d8ae75246832192544a14c0eb868dfa500b072887caace93d2e64e6e2f0fa82349eeb782bdeed185bfcabdb71cda394af92f732175bfd81fca502587699e68ec
+  049e86b76202eabc99b75d0c47bb296064b0e129a93c79b314a31056d182922301e07025ecebc84f5245739a6aeee8b5762e3352f0f6addce88e9e16f3e07f50
+  219c85c0a3c83ba4c2ba678ebb76428b2980226df4a2b8606ee19f340f453d2eabde59405c224a1fc4d26d3e1f9b02a9e5facf4d657bccdda5747e03bcb251b5
+  fe0af68f9bc55246a48dd1e6c74dd6a347da3e33e679568ae4b8a2d77fe166add0b698eac6b9242d6cb4665650952c3964319830c7a769ebf66d71de0e1d7b5d
+  feffba09d492b97b57d69c3e0d7d0e85a4fd0063adf3c7077c7b605de950a866d41993d209e6f8ec5295f5d9a74f78a5a02ba0cbc53b357b6fb3d1d2b0161627
+  577bd118f3b3ccee0cdfd7879c4fb7d4b4b137cf4f2e75a206d1a4b2391bebf1b994ea5dc201f8dd480e8cfa1662981362da33f097999c0a3be192d7efc748f0
+  b95ea15fb1e9675e2d1619ba39694d764ec00e25670ff83c12f0ba4a323698063375ade84e22b3790af97c901bdd418130c0e9f61f546848bb469b0d79a839d3
+  defa4e8d50e8a0399ef4755930ceafaf3d452783d64d82fb31362b6082899303ac87e69cc194d9aa78af3a7136cd32632b1a1cec283d0af2961ed5df748b1351
+  9569d52a1f792da52b0e0bd396c62f4bc0303b7a760e8e687ff9c19f0f0eb4858ce79790db2cb0300ef6d4aae5872a6d4d66be7fded574d5db3f437dbf49678e
+  dc4e5063f76c64789380f4ac0ee88919a028d923427c59b36e4232c0a00eedd39cc7d259127677d1a89f213508ebffae3b507c7e1d32274608b73f59ae018d83
+  7f01885423ff28811bfcd9982da1e5164b9ff174f3e1b4b566512007b290a1fbcacec538e8552896123e7030fb53603ecc437450c5c39037763bcbba9d6aa722
+  35ffe50fc79296615ef3e748bfd4a3dd4ff2fdcd4e4c5c3c6e8a86b4cd5c65e9cd8ddd94e2ce11e3f924c3a504315882626c26d37fec858e2db73c6b2bfaa5bf
+  b2a9a5b1e4298a8a91d71548e5b6a051d464d8d2d48e410347f68d4182547adc50d88891207ba3b16b67d3309f5abba1db495a989116deec7f27f93f63177cba
+  20435625fa1d890201b0749f08c2f27dab5c7cacd2e2bcb8ec986cfe0fcc07a6385a04b62c58c570c7c5286ac9d1f84ce89fad3cbec2732b53d0158fcc50a2de
+  ba8b492299eb0fd166a883f74f3935642d487e8b3778c4c0fe3dd4bc8b423d506cb4efbd702786808d94bc209122fdbee304f59d68fc7665216c0cb52995586e
+  5a3180a6119f03b5f0c3f381316b517c28e97a9fc95bdaa104ca4120ba62894ced7451abf583a05a9cfb2cfb89f0913b09670a3d76bdbbced620414535896fbf
+  d77770f39d6fb8d5b413bce1b9dcbaed46c2969789714fb557dbbe7be3de2328ef75cf595d3965b5b49cb97c37ded7fecc7b2e0df8b37cdda99aa5b2fcbee441
+  SKIP  # lmi-modem-fw tarball: pending M1 extraction from the device
+  72f431b756742bf2c1c9816f26eba0e1ce60d581d6590ed2521fcec33d45221658574990ed0d5fc3e48a947f4e64c255f7c62ab32b3b54ecb01e167bb2888398
+  f4488cf63028459caddc8d16f1e60a94c958cc7d664adc7c0cc67eda82477680704b43bb801347b2d95b84ea558305607c09a3361684114d48cab1e52c985b9a
+  1a1be91fa778f65adbf8936a881bd865970f14605d33592b89764443b3c42d0a1e5b5dd0537d500ab3ad7bfbf2898de0b16f2182a87baeddf5f4db7dada2cee1
+  1e2eec0f50a1c8f06e1d288eed918b5e8466c7da0d7a2338298781deb505e45a6541b2abfa87e21223c981bc5e4042eec7258ed853a1c832a5dbdda34d4b63f9
+  9edf44a1e2104541df34ee8d0b91382e36b8f4a5e2f062532fef5f32caecb71cb38028321c50cfa3268f8010922f8ecc893c78692752d3b438ba07058c378fa6
+  9d11094078844dce77ab8ce65dff9fc739d406e0aa02c8c270a9131258925f91ec08f8d774427f990a3307d98ef56466c1da4f31c3287950f22972b005c8fb3f
+))
+source+=(lmi-wait-loc.c 20-lmi-loc-ready.conf)
+sha512sums+=('107a91ee3c3a2d2e123e30ba6ff9c57f0115ef45f96a66678ee3cff70c372ff049de7abd525439cc614b79df8285b1b26ef6861a709c7aa87bdf0c46573483ce' 'c55d738a4ccaac4bb3b65dcd31e172f997dfc6206b23d941a6344a855da105665490f991302de05e97819508c39a69ca111c4245d0a7ffc891d0b3620170a60a')
+build() {
+  gcc $CFLAGS $LDFLAGS -Wall -Wextra -Werror -o lmi-wait-loc lmi-wait-loc.c $(pkg-config --cflags --libs qrtr-glib)
+  for tool in pm_service_native mdm_helper_native mhi_efs_sync diag_reader adsp_diag; do
+    gcc $CFLAGS $LDFLAGS -o "$tool" "$tool.c"
+  done
+  gcc $CFLAGS $LDFLAGS -DHAVE_ZSTD -o tqftpserv-sdx55 \
+    tqftpserv.c translate.c zstd-decompress.c -lqrtr -lzstd
+}
+package() {
+  install -Dm755 lmi-wait-loc "$pkgdir/usr/bin/lmi-wait-loc"
+  install -Dm644 20-lmi-loc-ready.conf "$pkgdir/usr/lib/systemd/system/ModemManager.service.d/20-lmi-loc-ready.conf"
+  for tool in pm_service_native mdm_helper_native mhi_efs_sync diag_reader adsp_diag tqftpserv-sdx55; do
+    install -Dm755 "$tool" "$pkgdir/usr/bin/$tool"
+  done
+  for script in lmi-efs-extract lmi-uim-provision lmi-modem-power-on; do
+    install -Dm755 "$script" "$pkgdir/usr/bin/$script"
+  done
+  for unit in pm-service-native mdm-helper-native mhi-efs-sync adsp-diag tqftpserv-sdx55 lmi-efs-extract lmi-modem-start lmi-modem-rproc; do
+    install -Dm644 "$unit.service" "$pkgdir/usr/lib/systemd/system/$unit.service"
+  done
+  for rule in 77-mm-ignore-sdx55-efs.rules 77-mm-sdx55-fusion.rules; do
+    install -Dm644 "$rule" "$pkgdir/usr/lib/udev/rules.d/$rule"
+  done
+  install -Dm644 rmnet.conf "$pkgdir/usr/lib/modules-load.d/lmi-rmnet.conf"
+  install -Dm644 10-lmi-modem-ordering.conf "$pkgdir/usr/lib/systemd/system/ModemManager.service.d/10-lmi-modem-ordering.conf"
+  install -Dm644 zz-lmi-multiplex.conf "$pkgdir/usr/lib/systemd/system/ModemManager.service.d/zz-lmi-multiplex.conf"
+  install -Dm644 20-lmi-manual-power.conf "$pkgdir/usr/lib/systemd/system/rmtfs.service.d/20-lmi-manual-power.conf"
+  install -d "$pkgdir/usr/lib/systemd/system/mhi-efs-sync.service.d"
+  printf '[Service]\nTimeoutStartSec=150\n' > "$pkgdir/usr/lib/systemd/system/mhi-efs-sync.service.d/10-lmi.conf"
+  install -d "$pkgdir/usr/lib/firmware"
+  cp -a --no-preserve=ownership sdx55m "$pkgdir/usr/lib/firmware/"
+  # Per-device EFS files are extracted from the phone into RAM at runtime.
+  test ! -e "$pkgdir/usr/lib/firmware/sdx55m/efs1.bin"
+  test ! -e "$pkgdir/usr/lib/firmware/sdx55m/efs2.bin"
+  test ! -e "$pkgdir/usr/lib/firmware/sdx55m/efs3.bin"
+  install -d "$pkgdir/etc/systemd/system"
+  ln -s /dev/null "$pkgdir/etc/systemd/system/tqftpserv.service"
+}

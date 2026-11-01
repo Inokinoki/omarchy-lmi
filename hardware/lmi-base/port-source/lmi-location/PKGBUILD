@@ -1,0 +1,25 @@
+pkgname=lmi-location
+pkgver=1.0
+pkgrel=1
+pkgdesc='LMI GNSS integration for desktop location applications'
+arch=(any)
+license=(GPL-2.0-only)
+depends=('lmi-modem>=1.0-4' 'modemmanager-lmi>=1.24.2.r1-2' geoclue libnotify libqmi bash coreutils systemd)
+source=(lmi-gnss-prepare lmi-gnss-prepare.service 30-lmi-gnss.conf 50-lmi.conf README.txt)
+sha512sums=(
+  bf26e8fe3e56299cc841cfe946f4cbd9a344e247daf8e4d0723c493770e4dca2b2c835c3c4797d5a2718527a76a77793b8ac4b59b9779290cea566f313c885f6
+  990e2daa242020cd87c255e998dbf8768516d15694c457902af6cd2c59725b4508ecbc7a4c0bc8b65c20b4f5665d1134174593d3c6123505e6ed558ee53c7b4c
+  094f0d817d5c050578787fb00e7af2e1657ea5abbd7ad61ee16b8cb837a5e517ea43f769cb7b31c7b360abc984846ddbf9e5c2084f61c848b960cba5193459cd
+  ea7e8063f8817afbbd71ddd49c490c06a21176d104c3ee34f214bcbefcd4b0b2e303473f73600ae7928c6efdef6cc16a0766a26de65b215d069685609f0ff4fa
+  2d36564df200e79a033894464cd4d349c792ade0a2207c7afc54b8bb24fd30d77eeb30e0b594a66066b9057f38e942d454859386bfed3723e78ba30621002d2a
+))
+check() {
+  bash -n lmi-gnss-prepare
+}
+package() {
+  install -Dm755 lmi-gnss-prepare "$pkgdir/usr/bin/lmi-gnss-prepare"
+  install -Dm644 lmi-gnss-prepare.service "$pkgdir/usr/lib/systemd/system/lmi-gnss-prepare.service"
+  install -Dm644 30-lmi-gnss.conf "$pkgdir/usr/lib/systemd/system/geoclue.service.d/30-lmi-gnss.conf"
+  install -Dm644 50-lmi.conf "$pkgdir/etc/geoclue/conf.d/50-lmi.conf"
+  install -Dm644 README.txt "$pkgdir/usr/share/doc/lmi-location/README.txt"
+}

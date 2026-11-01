@@ -1,0 +1,56 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-2.0-only
+# Verify and start a separate Omarchy image slot. Never formats storage.
+set -eu
+export PATH=/usr/sbin:/usr/bin:/sbin:/bin
+mkdir -p /proc /sys /dev /run /tmp /dev/pts
+mount -t devtmpfs devtmpfs /dev
+mkdir -p /dev/pts
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
+mount -t devpts devpts /dev/pts
+mount -t tmpfs tmpfs /run
+exec </dev/console >/dev/console 2>&1
+fatal() { echo "Omarchy LMI boot failed: $*"; sync; sleep 30; /sbin/reboot-bootloader; exit 1; }
+# No background process may hold /sys or /run across the switch_root handoff.
+# The installed USB maintenance service starts after systemd takes over.
+SLOT=$(cat /etc/omarchy-lmi-slot)
+case "$SLOT" in ''|*[!a-z0-9-]*) fatal 'invalid image slot';; esac
+[ "${#SLOT}" -le 64 ] || fatal 'invalid image slot length'
+EXPECTED=$(cat /etc/omarchy-lmi.sha256)
+case "$EXPECTED" in ''|*[!a-f0-9]*) fatal 'invalid image checksum';; esac
+[ "${#EXPECTED}" -eq 64 ] || fatal 'invalid image checksum length'
+TARGET=
+for i in $(seq 1 60); do
+ for entry in /sys/class/block/*/uevent; do
+  if grep -qx 'PARTNAME=userdata' "$entry"; then
+   [ -z "$TARGET" ] || fatal 'duplicate userdata partition'
+   TARGET=/dev/$(basename "$(dirname "$entry")")
+  fi
+ done
+ [ -n "$TARGET" ] && break
+ sleep 1
+done
+[ -n "$TARGET" ] || fatal 'userdata partition absent'
+mkdir -p /run/lmi-storage /run/lmi-lower /newroot
+mount -t ext4 -o rw,noatime "$TARGET" /run/lmi-storage || fatal 'ext4 mount'
+grep -qx 'lmi-persistent-v1' /run/lmi-storage/.lmi-storage-v1 || fatal 'storage marker'
+BASE=/run/lmi-storage/$SLOT
+[ -d "$BASE" ] && [ ! -L "$BASE" ] || fatal 'image slot absent'
+grep -qx 'omarchy-lmi-slot-v1' "$BASE/.omarchy-slot-v1" || fatal 'image slot marker'
+echo "$EXPECTED  $BASE/base/omarchy-lmi.sqfs" | sha256sum -c - || fatal 'image checksum'
+mkdir -p "$BASE/state/upper" "$BASE/state/work"
+# The merged root inherits this directory's permissions.
+chmod 0755 "$BASE/state/upper"
+mount -t squashfs -o loop,ro "$BASE/base/omarchy-lmi.sqfs" /run/lmi-lower || fatal 'image mount'
+mount -t overlay overlay -o lowerdir=/run/lmi-lower,upperdir="$BASE/state/upper",workdir="$BASE/state/work" /newroot || fatal 'persistent overlay'
+[ -x /newroot/usr/lib/systemd/systemd ] || fatal 'systemd missing'
+[ -f /newroot/etc/omarchy-lmi/clean-image.json ] || fatal 'Omarchy image marker absent'
+touch /run/lmi-persistent
+printf '%s\n' "$SLOT" >/run/omarchy-lmi-slot
+mkdir -p /newroot/run /newroot/proc /newroot/sys /newroot/dev
+mount --move /proc /newroot/proc
+mount --move /sys /newroot/sys
+mount --move /dev /newroot/dev
+mount --move /run /newroot/run
+exec switch_root /newroot /usr/lib/systemd/systemd

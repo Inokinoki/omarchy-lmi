@@ -1,0 +1,5 @@
+[D-BUS Service]
+Name=org.omarchy.Lmi.Android
+Exec=/usr/lib/omarchy/lmi/apk-service
+User=root
+SystemdService=omarchy-lmi-apk.service

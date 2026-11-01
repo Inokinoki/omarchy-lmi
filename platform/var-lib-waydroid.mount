@@ -1,0 +1,13 @@
+[Unit]
+Description=Waydroid data on LMI's native ext4 storage
+RequiresMountsFor=/run/lmi-storage/waydroid
+Before=waydroid-container.service
+
+[Mount]
+What=/run/lmi-storage/waydroid
+Where=/var/lib/waydroid
+Type=none
+Options=bind
+
+[Install]
+WantedBy=multi-user.target

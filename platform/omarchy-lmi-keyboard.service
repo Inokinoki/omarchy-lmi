@@ -1,0 +1,15 @@
+[Unit]
+Description=LMI on-screen keyboard
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+Type=notify
+NotifyAccess=main
+ExecStart=/usr/bin/omarchy-lmi-keyboard-run
+TimeoutStartSec=15
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=graphical-session.target

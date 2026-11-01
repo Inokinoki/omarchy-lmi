@@ -1,0 +1,18 @@
+pkgname=lmi-video
+pkgver=1.0
+pkgrel=2
+pkgdesc='Initialize LMI Iris codec from the device read-only firmware partition'
+arch=(any)
+license=(MIT)
+depends=(bash systemd util-linux kmod linux-lmi)
+source=(lmi-video-init lmi-video-init.service lmi-video-order.conf)
+sha512sums=(
+  5f6012ccad92f93ae49dbebc5e28d31ff0de082b70d29d36065838b676a47b6c84128569ba772161aac3bdc7d7c85973ca090de0ae5dc14aab1f1304185ac15d
+  890bace766e1c1d35a9e0decc0c331964453e148ce10fddb7b0b1a579072b65c667df48cda2dcd96fcd1af7e95df801a639ecea7fddfc62d6d4485c042a42083
+  b29ac9091c1bde853ffd2fd05bd5f0d88cd46f8cd2bfe0b1c69d6464c41b09e6aca27acdf0c1db51d1110f250ff4cba96687634276f6521a04312183a127f068
+))
+package() {
+  install -Dm755 lmi-video-init "$pkgdir/usr/bin/lmi-video-init"
+  install -Dm644 lmi-video-init.service "$pkgdir/usr/lib/systemd/system/lmi-video-init.service"
+  install -Dm644 lmi-video-order.conf "$pkgdir/usr/lib/modprobe.d/lmi-video-order.conf"
+}

@@ -1,0 +1,146 @@
+--- a/bin/omarchy-hw-platform
++++ b/bin/omarchy-hw-platform
+@@ -1,6 +1,6 @@
+ #!/bin/bash -p
+ 
+-# omarchy:summary=Print the hardware platform: x86, aarch64, aarch64-apple, aarch64-qualcomm, aarch64-n1x or aarch64-gb10.
++# omarchy:summary=Print the hardware platform: x86, aarch64, aarch64-apple, aarch64-qualcomm, aarch64-lmi, aarch64-n1x or aarch64-gb10.
+ 
+ # Platform names are the CPU architecture, then the hardware family when it
+ # needs handling of its own: x86, aarch64 (every ARM machine without one),
+@@ -147,7 +147,7 @@
+     generic) platform=x86 ;;
+     qualcomm) platform=aarch64-qualcomm ;;
+   esac
+-  if [[ ! $platform =~ ^(x86|aarch64|aarch64-apple|aarch64-qualcomm|aarch64-n1x|aarch64-gb10)$ ]]; then
++  if [[ ! $platform =~ ^(x86|aarch64|aarch64-apple|aarch64-qualcomm|aarch64-lmi|aarch64-n1x|aarch64-gb10)$ ]]; then
+     echo "Error: the image manifest $manifest names no known platform: ${platform:-none}" >&2
+     return 1
+   fi
+@@ -168,6 +168,7 @@
+ 
+ vendor=""
+ vendor_source=""
++lmi=0
+ for source in "${sources[@]}"; do
+   [[ -r $source ]] || continue
+ 
+@@ -175,6 +176,7 @@
+   qcom=0
+   mapfile -d '' -t tokens <"$source"
+   for token in "${tokens[@]}"; do
++    [[ $token == "xiaomi,lmi" ]] && lmi=1
+     [[ $token == "apple,"* ]] && apple=1
+     [[ $token == "qcom,"* ]] && qcom=1
+   done
+@@ -195,6 +197,13 @@
+   vendor=$found
+   vendor_source=$source
+ done
++
++# The POCO F2 Pro (lmi) uses an Android boot image, not the Snapdragon laptop layout.
++if (( lmi )); then
++  [[ $machine == "aarch64" && $vendor == "qcom" ]] || contradiction "POCO F2 Pro must be Qualcomm aarch64 hardware"
++  echo aarch64-lmi
++  exit 0
++fi
+ 
+ # An NVIDIA N1x: ACPI NVDA0200, or PCI 10de:2e06.
+ n1x_source=""
+--- /dev/null
++++ b/bin/omarchy-hw-aarch64-lmi
+@@ -0,0 +1,17 @@
++#!/bin/bash -p
++
++# omarchy:summary=Detect whether the computer is a POCO F2 Pro phone.
++
++# Callers run this by absolute path, from systemd and from the shell, so use the
++# detector shipped beside it rather than whichever one PATH finds. -p keeps a
++# root caller's exported functions out, so a launch without it is refused, and
++# nothing here searches PATH.
++if [[ $- != *p* ]]; then
++  echo "Refusing an unsafe Bash startup." >&2
++  exit 126
++fi
++
++dir=${BASH_SOURCE[0]%/*}
++[[ $dir != "${BASH_SOURCE[0]}" ]] || dir=.
++platform=$("$dir/omarchy-hw-platform") || exit 1
++[[ $platform == "aarch64-lmi" ]]
+--- a/bin/omarchy-lifecycle-dispatch
++++ b/bin/omarchy-lifecycle-dispatch
+@@ -104,6 +104,11 @@
+ # test/shell.d/lifecycle-dispatch-test.sh and the Apple column and registration
+ # table in docs/lifecycle-dispatch.md.
+ case $platform:$operation in
++  aarch64-lmi:*)
++    implementation=/usr/lib/omarchy/lmi
++    package=omarchy-lmi
++    required=("${operations[@]}")
++    ;;
+   aarch64-apple:setup-system | aarch64-apple:setup-user | aarch64-apple:post-install | aarch64-apple:pre-remove | \
+     aarch64-apple:enable-fingerprint | aarch64-apple:disable-fingerprint)
+     implementation=/usr/lib/omarchy/mac
+--- a/bin/omarchy-provision-first-run
++++ b/bin/omarchy-provision-first-run
+@@ -5,6 +5,10 @@
+ # omarchy:hidden=true
+ 
+ set -e
++
++if omarchy-hw-aarch64-lmi; then
++  exec omarchy-lmi-first-run "$@"
++fi
+ 
+ usage() {
+   cat <<USAGE
+--- a/bin/omarchy
++++ b/bin/omarchy
+@@ -27,6 +27,7 @@
+ declare -A GROUP_DESCRIPTIONS
+ 
+ GROUP_DESCRIPTIONS[agent]="AI coding agents, their usage, and subscription accounts"
++GROUP_DESCRIPTIONS[lmi]="Phone keyboard and Android application controls"
+ GROUP_DESCRIPTIONS[ascii]="Text drawn as ASCII art"
+ GROUP_DESCRIPTIONS[audio]="Audio input and output controls"
+ GROUP_DESCRIPTIONS[bar]="Omarchy shell bar layout and settings"
+--- a/test/shell.d/hw-platform-test.sh
++++ b/test/shell.d/hw-platform-test.sh
+@@ -21,7 +21,7 @@
+ fi
+ if (( EUID == 0 )) || unshare --user --map-root-user true 2>/dev/null; then
+   live=$("${root_runner[@]}" "$detector") || fail "root detects the live platform"
+-  [[ $live =~ ^(aarch64-apple|aarch64-qualcomm|aarch64-n1x|aarch64-gb10|aarch64|x86)$ ]] || fail "root detects the live platform" "live: $live"
++  [[ $live =~ ^(aarch64-apple|aarch64-qualcomm|aarch64-lmi|aarch64-n1x|aarch64-gb10|aarch64|x86)$ ]] || fail "root detects the live platform" "live: $live"
+   for platform in aarch64-apple aarch64 x86; do
+     fixture="$test_tmp/$platform"
+     if [[ -f $fixture/proc/device-tree/compatible ]]; then
+@@ -41,7 +41,7 @@
+ 
+ # -p in the shebang is what keeps exported functions and BASH_ENV out, so an
+ # ordinary Bash launch with a decoy -p argument is refused before it reads anything.
+-for command in omarchy-hw-platform omarchy-hw-aarch64-apple omarchy-hw-apple-silicon omarchy-hw-aarch64-qualcomm omarchy-hw-aarch64-n1x omarchy-hw-n1x omarchy-hw-aarch64-gb10; do
++for command in omarchy-hw-platform omarchy-hw-aarch64-apple omarchy-hw-apple-silicon omarchy-hw-aarch64-qualcomm omarchy-hw-aarch64-lmi omarchy-hw-aarch64-n1x omarchy-hw-n1x omarchy-hw-aarch64-gb10; do
+   if /usr/bin/bash "$ROOT/bin/$command" -p >/dev/null 2>"$test_tmp/error"; then
+     fail "$command refuses an ordinary Bash launch"
+   fi
+@@ -135,6 +135,19 @@
+   expect "$board" aarch64 aarch64-qualcomm "the $board device tree is Snapdragon, never Apple Silicon"
+ done
+ pass "real Apple and Snapdragon device trees are recognised"
++
++write_tree lmi proc xiaomi,lmi qcom,kona qcom,sm8250
++expect lmi aarch64 aarch64-lmi "LMI is a phone family rather than a Snapdragon laptop"
++expect_contradiction lmi x86_64 "an LMI on an x86 CPU fails"
++write_tree lmi-lookalike proc vendor,xiaomi,lmi qcom,sm8250
++expect lmi-lookalike aarch64 aarch64-qualcomm "only the exact LMI compatible token selects the phone family"
++TEST_ARCH=aarch64 OMARCHY_PROC_ROOT="$test_tmp/cases/lmi/proc" OMARCHY_SYS_ROOT="$test_tmp/cases/lmi/sys" \
++  PATH="$stub_bin:$ROOT/bin:$PATH" "$ROOT/bin/omarchy-hw-aarch64-lmi" || fail "the LMI predicate accepts LMI"
++if TEST_ARCH=aarch64 OMARCHY_PROC_ROOT="$test_tmp/cases/lmi/proc" OMARCHY_SYS_ROOT="$test_tmp/cases/lmi/sys" \
++  PATH="$stub_bin:$ROOT/bin:$PATH" "$ROOT/bin/omarchy-hw-aarch64-qualcomm"; then
++  fail "LMI must not take Snapdragon laptop setup"
++fi
++pass "LMI has an exact device-tree identity and its own predicate"
+ 
+ write_tree qemu-virt proc linux,dummy-virt
+ write_tree raspberry-pi proc raspberrypi,5-model-b brcm,bcm2712
