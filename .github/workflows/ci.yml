@@ -1,0 +1,90 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  # Fast, always-on: the repo verifies itself (checksums, syntax, no secrets).
+  sources:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -I tools/check_sources.py
+
+  # Fast, always-on: the patch series must apply cleanly to the pinned
+  # upstream Omarchy commit recorded in the root PKGBUILD.
+  patches:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Resolve the pinned upstream commit
+        run: echo "OMARCHY_COMMIT=$(grep -oP '(?<=^_commit=)[0-9a-f]{40}' PKGBUILD)" >> "$GITHUB_ENV"
+      - name: Fetch upstream Omarchy at the pinned commit
+        run: |
+          git init upstream
+          cd upstream
+          git remote add origin https://github.com/omacom/omarchy.git
+          git fetch --depth 1 origin "$OMARCHY_COMMIT"
+          git checkout -q FETCH_HEAD
+      - name: Apply the patch series like the PKGBUILD does
+        working-directory: upstream
+        run: |
+          set -euo pipefail
+          for p in "$GITHUB_WORKSPACE"/patches/*.patch; do
+            patch -Np1 --fuzz=0 --dry-run -i "$p"
+            patch -Np1 --fuzz=0 -i "$p"
+            echo "applied $(basename "$p")"
+          done
+      - name: Verify the patched tree
+        run: |
+          set -euo pipefail
+          test -f upstream/bin/omarchy-hw-aarch64-lmi
+          bash -n upstream/bin/omarchy-hw-aarch64-lmi
+          ! grep -ri apollo upstream/bin upstream/shell upstream/test upstream/config
+
+  # Slow, on demand only (workflow_dispatch): cross-build the aarch64 kernel
+  # payload. The first run also records the source-tarball sha512 so the pin
+  # in build-kernel.sh can be filled from a recorded value.
+  kernel:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: repo
+      - name: Resolve the pinned kernel commit
+        run: |
+          echo "KERNEL_COMMIT=$(grep -oP '(?<=^COMMIT=)[0-9a-f]{40}' \
+            repo/hardware/lmi-base/port-source/linux-lmi/build-kernel.sh)" >> "$GITHUB_ENV"
+      - name: Install the cross toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            clang llvm lld gcc flex bison bc cpio dwarves libelf-dev libssl-dev
+      - name: Download the kernel tarball and record its sha512
+        run: |
+          mkdir -p build/downloads
+          curl --fail --location --retry 3 \
+            --output "build/downloads/linux-$KERNEL_COMMIT.tar.gz" \
+            "https://github.com/yuweiyuan8/linux/archive/$KERNEL_COMMIT.tar.gz"
+          sha512sum "build/downloads/linux-$KERNEL_COMMIT.tar.gz" | tee linux-tarball.sha512
+      - name: Cross-build Image.gz, DTB and modules
+        run: |
+          set -euo pipefail
+          export LMI_REPO="$GITHUB_WORKSPACE/repo"
+          export LMI_BUILD="$GITHUB_WORKSPACE/build"
+          export LMI_JOBS="$(nproc)"
+          export LMI_TARBALL_SHA512="$(awk '{print $1}' linux-tarball.sha512)"
+          "$LMI_REPO/hardware/lmi-base/port-source/linux-lmi/build-kernel.sh"
+      - name: Upload the boot payload
+        uses: actions/upload-artifact@v4
+        with:
+          name: lmi-kernel-artifacts
+          path: |
+            build/artifacts/
+            linux-tarball.sha512
+          if-no-files-found: error

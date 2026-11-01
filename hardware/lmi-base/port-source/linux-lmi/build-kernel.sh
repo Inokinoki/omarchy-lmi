@@ -58,7 +58,8 @@ scripts/config --file "$BUILD/kernel-out/.config" \
     --enable QCOM_QSEECOM --module TEE_QSEECOM \
     --module DRM_PANEL_SAMSUNG_AMS667UU01 \
     --module TOUCHSCREEN_FOCALTECH_FTS \
-    --disable RTC_HCTOSYS --disable RTC_SYSTOHC
+    --disable RTC_HCTOSYS --disable RTC_SYSTOHC \
+    --disable DEBUG_INFO_BTF
 ARCH=arm64 LLVM=1 make O="$BUILD/kernel-out" olddefconfig
 # Fail loudly if the fork renamed either board driver symbol: that is an
 # upstream movement to review, not something to paper over.
@@ -68,7 +69,10 @@ for symbol in DRM_PANEL_SAMSUNG_AMS667UU01 TOUCHSCREEN_FOCALTECH_FTS; do
         exit 1
     }
 done
-make O="$BUILD/kernel-out" ARCH=arm64 LLVM=1 -j12 Image.gz qcom/sm8250-xiaomi-lmi.dtb modules > "$BUILD/kernel-build.log" 2>&1
+# BTF is disabled above on purpose: it is not consumed on the phone and its
+# vmlinux encoding exhausts the memory of CI-class runners.
+JOBS=${LMI_JOBS:-$(nproc)}
+make O="$BUILD/kernel-out" ARCH=arm64 LLVM=1 -j"$JOBS" Image.gz qcom/sm8250-xiaomi-lmi.dtb modules > "$BUILD/kernel-build.log" 2>&1
 make O="$BUILD/kernel-out" ARCH=arm64 LLVM=1 INSTALL_MOD_PATH="$BUILD/artifacts" INSTALL_MOD_STRIP=1 modules_install >> "$BUILD/kernel-build.log" 2>&1
 cp "$BUILD/kernel-out/arch/arm64/boot/Image.gz" "$BUILD/artifacts/"
 cp "$BUILD/kernel-out/arch/arm64/boot/dts/qcom/sm8250-xiaomi-lmi.dtb" "$BUILD/artifacts/"
