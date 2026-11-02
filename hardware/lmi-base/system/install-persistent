@@ -56,9 +56,9 @@ subprocess.run(['mount','-t','ext4',str(target),str(root)],check=True)
 try:
     import shutil
     (root/'base').mkdir(); (root/'state/upper').mkdir(parents=True); (root/'state/work').mkdir()
-    shutil.copyfile(a.base,root/'base/arch-lmi.sqfs.part')
-    with (root/'base/arch-lmi.sqfs.part').open('rb') as f: assert hashlib.file_digest(f,'sha256').hexdigest()==manifest['base']['sha256']
-    (root/'base/arch-lmi.sqfs.part').rename(root/'base/arch-lmi.sqfs')
+    shutil.copyfile(a.base,root/'base/omarchy-lmi.sqfs.part')
+    with (root/'base/omarchy-lmi.sqfs.part').open('rb') as f: assert hashlib.file_digest(f,'sha256').hexdigest()==manifest['base']['sha256']
+    (root/'base/omarchy-lmi.sqfs.part').rename(root/'base/omarchy-lmi.sqfs')
     (root/'.lmi-storage-v1').write_text('lmi-persistent-v1\n')
     (root/'install-manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
     os.sync()

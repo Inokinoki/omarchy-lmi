@@ -32,11 +32,11 @@ postmarketOS wiki page for xiaomi-lmi, not this project's own evidence.
    on an aarch64-capable Linux host (or in a container), after pinning the
    tarball sha512 (`LMI_TARBALL_SHA512`). The CI `kernel` job produces the
    same payload plus the packaged assets tarball.
-2. Assemble the firmware tarball from the pinned community device-extracted
-   set (yuweiyuan8/firmware-xiaomi-lmi @ `dde15638`, see
-   `packaging/firmware-model/files.txt`) or from the unlocked device, and
-   fill the `SKIP` sha512 pins in `packaging/firmware.PKGBUILD`, `lmi-dsp`
-   and `lmi-modem` PKGBUILDs. Prefer the device extraction on any mismatch.
+2. Assemble the firmware tarball with
+   `packaging/firmware-model/assemble-firmware.sh` (pinned community
+   device-extracted set `dde15638`, or the unlocked device) and fill the
+   `SKIP` sha512 pins in `packaging/firmware.PKGBUILD`, `lmi-dsp` and
+   `lmi-modem` PKGBUILDs. Prefer the device extraction on any mismatch.
 3. Boot image parameters are pre-filled from the LineageOS device tree
    (sm8250-common `BoardConfigCommon`, lineage-23.2: header v2, page 4096,
    base 0x0). Confirm cheaply by unpacking a stock lmi boot.img
@@ -45,11 +45,12 @@ postmarketOS wiki page for xiaomi-lmi, not this project's own evidence.
 4. The model assert is pre-filled with `Xiaomi POCO F2 Pro`, the `model`
    property of the pinned mainline DTS; confirm it on the device at first
    boot and fix `hardware/lmi-base/system/install-persistent` if it differs.
-5. Build the real base SquashFS (Arch Linux ARM aarch64 rootfs + device
-   packages + private firmware inputs), then assemble the initramfs with
-   `build-initramfs.sh` (it bakes the base checksum) and the boot image with
-   `build-bootimg.sh`; `fastboot boot` the image first, then flash `boot`
-   and an empty `dtbo`, with a preserved recovery route.
+5. Build the base SquashFS with `build-base-rootfs.sh` (docs/build.md
+   steps 3-4), assemble the initramfs with `build-initramfs.sh` (it bakes
+   the base checksum) and the boot image with `build-bootimg.sh`, generate
+   the manifest with `make-install-manifest.py`; `fastboot boot` the image
+   first, then install with `install-persistent` (flash `boot`, empty
+   `dtbo`), with a preserved recovery route.
 6. Accept: cold boot to compositor, panel at 60 Hz, FocalTech touch across
    rotation, freedreno GL, ath11k scan/join on both bands, and the
    fatal-path reboot into the bootloader.
