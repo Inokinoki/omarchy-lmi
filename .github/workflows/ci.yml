@@ -197,3 +197,118 @@ jobs:
             build/initramfs-ci-fixture.img
             busybox.sha512
           if-no-files-found: error
+
+  # Slow, on demand only: build the public package set and the real base rootfs
+  # on a native arm64 runner, then the initramfs and boot image around it. The
+  # device-private packages (lmi-dsp, lmi-modem) are not built here; they need
+  # inputs from the owner's phone and are installed locally afterwards.
+  rootfs:
+    if: github.event_name == 'workflow_dispatch'
+    needs: kernel
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - name: Free runner disk
+        run: |
+          sudo rm -rf /usr/local/lib/android /opt/hostedtoolcache /usr/share/dotnet || true
+          docker system prune -af >/dev/null || true
+          df -h /
+      - name: Download the kernel payload
+        uses: actions/download-artifact@v4
+        with:
+          name: lmi-kernel-artifacts
+          path: kernel
+      - name: Import the verified Arch Linux ARM bootstrap
+        run: hardware/lmi-base/system/ci/bootstrap-alarm.sh
+      - name: Build the builder image
+        run: docker build --platform linux/arm64 -t lmi-builder hardware/lmi-base/system/ci
+      - name: Stage the build inputs
+        run: |
+          set -euo pipefail
+          W="$RUNNER_TEMP/work"
+          mkdir -p "$W/src" "$W/pkgs" "$W/out"
+          git ls-files -z | xargs -0 -I{} cp --parents {} "$W/src/"
+          # The community firmware set is public; the archive mode bits depend
+          # on umask, so assemble under the umask the pin was computed with.
+          mkdir -p "$W/src/private-inputs"
+          (umask 022; packaging/firmware-model/assemble-firmware.sh \
+            --output "$W/src/private-inputs/firmware-xiaomi-lmi-0.1.tar.gz")
+          # The kernel assets archive is not byte-reproducible between runs, so
+          # the staged copy pins the archive this run just built.
+          assets=kernel/lmi-kernel-assets-*.tar.xz
+          cp $assets "$W/src/hardware/lmi-base/port-source/linux-lmi/"
+          sum=$(sha512sum $assets | cut -d' ' -f1)
+          sed -i "s/^sha512sums=('[0-9a-f]*')/sha512sums=('$sum')/" \
+            "$W/src/hardware/lmi-base/port-source/linux-lmi/PKGBUILD"
+          # Keyring sources at a pinned omarchy-pkgs commit (sha512-checked by its PKGBUILD).
+          git init -q "$W/omarchy-pkgs"
+          git -C "$W/omarchy-pkgs" remote add origin https://github.com/omacom/omarchy-pkgs
+          git -C "$W/omarchy-pkgs" fetch -q --depth 1 origin ae6fe3f090844c8fdbfdd0b86e4121602302fab4
+          git -C "$W/omarchy-pkgs" checkout -q FETCH_HEAD
+          echo "WORK=$W" >> "$GITHUB_ENV"
+      - name: Build the packages and the base rootfs
+        run: |
+          docker run --rm --privileged --platform linux/arm64 \
+            -v "$WORK:/work" lmi-builder /work/src/hardware/lmi-base/system/ci/in-container.sh
+          sudo chown -R "$USER" "$WORK/out"
+          ls -lh "$WORK/out"
+      - name: Fetch mkbootimg at the pinned commit
+        run: |
+          git init mkbootimg
+          cd mkbootimg
+          git remote add origin https://android.googlesource.com/platform/system/tools/mkbootimg
+          git fetch --depth 1 origin d2bb0af5ba6d3198a3e99529c97eda1be0b5a093
+          git checkout -q FETCH_HEAD
+      - name: Build the pinned busybox
+        run: |
+          set -euo pipefail
+          export BUSYBOX_VER=1.37.0
+          export BUSYBOX_BUILD="$PWD/build/busybox"
+          mkdir -p "$BUSYBOX_BUILD/downloads"
+          curl --fail --location --retry 3 \
+            --output "$BUSYBOX_BUILD/downloads/busybox-$BUSYBOX_VER.tar.bz2" \
+            "https://busybox.net/downloads/busybox-$BUSYBOX_VER.tar.bz2"
+          sha512sum "$BUSYBOX_BUILD/downloads/busybox-$BUSYBOX_VER.tar.bz2" | tee busybox.sha512
+          export BUSYBOX_SHA512="$(awk '{print $1}' busybox.sha512)"
+          CROSS_COMPILE= "$GITHUB_WORKSPACE/hardware/lmi-base/system/build-busybox.sh"
+      - name: Assemble the initramfs and the boot image
+        run: |
+          set -euo pipefail
+          export BUSYBOX_SHA512="$(awk '{print $1}' busybox.sha512)"
+          export BUSYBOX_BUILD="$PWD/build/busybox"
+          export BUSYBOX_VER=1.37.0
+          hardware/lmi-base/system/build-initramfs.sh \
+            --repo "$GITHUB_WORKSPACE" \
+            --slot lmi-ci \
+            --base-squashfs "$WORK/out/omarchy-lmi.sqfs" \
+            --busybox "$BUSYBOX_BUILD/busybox-$BUSYBOX_VER/busybox" \
+            --host-cc gcc \
+            --output build/initramfs.img
+          hardware/lmi-base/system/build-bootimg.sh \
+            --kernel kernel/build/artifacts/Image.gz \
+            --dtb kernel/build/artifacts/sm8250-xiaomi-lmi.dtb \
+            --ramdisk build/initramfs.img \
+            --mkbootimg mkbootimg/mkbootimg.py \
+            --output build/boot.img
+          sha256sum "$WORK/out/omarchy-lmi.sqfs" build/boot.img build/initramfs.img | tee build/SHA256SUMS
+      - name: Round-trip the boot image header
+        run: |
+          set -euo pipefail
+          python3 mkbootimg/unpack_bootimg.py \
+            --boot_img build/boot.img --out unpacked --format mkbootimg | tee unpacked-args
+          grep -q -- '--header_version 2' unpacked-args
+          grep -q -- '--pagesize 0x00001000' unpacked-args
+          grep -q 'console=ttyMSM0,115200n8' unpacked-args
+      - name: Upload the image set
+        uses: actions/upload-artifact@v4
+        with:
+          name: lmi-rootfs
+          path: |
+            ${{ env.WORK }}/out/omarchy-lmi.sqfs
+            ${{ env.WORK }}/pkgs/*.pkg.tar.*
+            build/boot.img
+            build/initramfs.img
+            build/SHA256SUMS
+          compression-level: 0
+          if-no-files-found: error
