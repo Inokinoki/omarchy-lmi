@@ -15,7 +15,7 @@ options=('!strip' '!debug')
 # it exists; SKIP is an explicit pending marker, not a permanent state.
 source=(
   "firmware-xiaomi-lmi-0.1.tar.gz::file://$startdir/private-inputs/firmware-xiaomi-lmi-0.1.tar.gz")
-sha512sums=('SKIP')  # pending M1 assembly from the pinned source or device extraction
+sha512sums=('18191ac4268ddbec9e7bfc3aeae5930399720a9b30ad3eeb5e61d8f29d3a9c21c41e70fe35d1a67aa2f64c90d3cd7930688e018e8a62892c298e066190f47bb8')  # assembled from the pinned community commit; re-verify against the device extraction at M1
 package() {
   while IFS= read -r name; do
     [[ -n $name && $name != \#* ]] || continue
