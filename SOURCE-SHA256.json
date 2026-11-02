@@ -100,7 +100,7 @@
  "hardware/lmi-base/system/70-lmi-usb-gadget.rules": "8819e2e3e11a82bb49457d0730e7cc57f959a7b7ba04c479b431ed7736165ec1",
  "hardware/lmi-base/system/build-base-rootfs.sh": "8b20c7bb0da46a7a5a9dda701558ea725e7064e17c00aee841bf8fb2cf53a1c5",
  "hardware/lmi-base/system/build-bootimg.sh": "9cd2697460208b993132d750e8c3da52afd528422230c496606e13f7fa918316",
- "hardware/lmi-base/system/build-busybox.sh": "d9e48df161f88ece5bb6a1f90ba9b436fc1722c7c0da5d40c30579e0c9cc1a57",
+ "hardware/lmi-base/system/build-busybox.sh": "371be21fcf528829bfb51358e24870bf4a3e4c29f49da590728fcc8400735f9d",
  "hardware/lmi-base/system/build-initramfs.sh": "803e37da3b047d39ada706a37c654cecf0516356a5e82c013e9000613b4a469b",
  "hardware/lmi-base/system/install-persistent": "841e1155dd6e0ccf9360316bc22b4486a6eac7eadfdae65479db77748c2d094b",
  "hardware/lmi-base/system/lmi-usb-gadget.py": "841a3d76f3df5dc8e559de0edfa507aa1a4a431d0ed41c40704173830310d453",
