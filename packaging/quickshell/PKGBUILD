@@ -53,7 +53,7 @@ source=("$_archive::git+$url.git#commit=$_commit"
 sha256sums=('SKIP'
             '23b65d205d825f11a1cd8501acbc6e50250d09a6ce607e2ff8b3cf5d438bd0ce'
             '8543e21aeaaa5441b73a679160e7601a957f16c433e8d6bd9257e80bd0e94083'
-            '9eab3b9e3d8d30dc9ee263f77333b85b7f597fd2036f0c9320915681a2ae0c54'
+            '97ebcf5b62c15fa4d38002b1b2c952f960c49272284831019e2e30ed1d28a83b'
             '92f8f099c95cfee1495fb80f87fc79e7407e7c19ca34df71818bd596f723f660'
             '717ba1949502290f8e47688ae2e323acd06c8ca47aec9f7596b15f678c1af4a2')
 

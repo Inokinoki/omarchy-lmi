@@ -31,6 +31,10 @@ cd "$BUILD/busybox-$VER"
 make defconfig >/dev/null
 # The initramfs shell must run without a libc on the target.
 sed -i 's/^# CONFIG_STATIC is not set$/CONFIG_STATIC=y/' .config
+# busybox 1.37.x: networking/tc uses struct tc_cbq_wrropt, removed from
+# modern kernel headers (upstream fix landed after 1.37). The boot initramfs
+# never does traffic control; disable the applet.
+sed -i 's/^CONFIG_TC=y$/# CONFIG_TC is not set/' .config
 make -j"$(nproc)" CROSS_COMPILE="$CROSS" > "$BUILD/busybox-build.log" 2>&1
 file busybox | grep -q 'statically linked' || {
     echo "busybox did not build static; inspect $BUILD/busybox-build.log" >&2
