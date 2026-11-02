@@ -118,7 +118,7 @@
  "packaging/firmware-model/README.md": "6d4bbca48e53686d56276f8b4e4bdb796feeb9378384f72bbad624d66431f020",
  "packaging/firmware-model/assemble-firmware.sh": "e10a13c4519cd3c6014161891480c0a21d9e8750bfccab0456e5d667aca2e277",
  "packaging/firmware-model/files.txt": "24c80a4c4ac34e3838fda8b8b1bbee3988296328b215277af86231bd8c4be5ee",
- "packaging/firmware.PKGBUILD": "3238919adc33f8eed9a20fa1dd664b67cc2991c7c56abf21a82cf880b0489190",
+ "packaging/firmware.PKGBUILD": "a912d141ddab95c36f055566812d4d0c217f2b35b986bc9da6edaadef32924c7",
  "packaging/hyprgraphics/0001-synchronize-async-resource-completion.patch": "88ff245bc37283feea1f5ef5e74f06458c7ea154c9215e07ed133c09235e2a0e",
  "packaging/hyprgraphics/PKGBUILD": "b9ab81946a33d8b49b37a3678dbf8030500900451c17af0f7cf27cc2b21711fe",
  "packaging/hyprgraphics/README.md": "f6d18192b05a7dcf8a97ca9788775462741afe3c2c3bdb349b885874041592c8",
