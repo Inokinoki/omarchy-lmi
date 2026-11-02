@@ -70,7 +70,11 @@ if find "$staging" -type f \( -name 'efs*' -o -name 'modemst*' \) | grep -q .; t
     echo 'refusing: modem identity files present in the source set' >&2
     exit 1
 fi
-tar -czf "$output" -C "$staging" qcom
+# Deterministic archive: sorted entries, fixed metadata, no gzip timestamp.
+# The pinned sha512 in packaging/firmware.PKGBUILD is only reproducible with
+# these flags.
+tar --sort=name --mtime=@0 --owner=0:0 --group=0 -cf - -C "$staging" qcom \
+    | gzip -n > "$output"
 echo "FIRMWARE TARBALL COMPLETE: $output"
 sha512sum "$output"
 echo "Fill this hash into packaging/firmware.PKGBUILD sha512sums (replacing SKIP)."
