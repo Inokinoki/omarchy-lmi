@@ -13,7 +13,7 @@ options=(!strip)
 # phone partitions. The sha512 pin is an explicit pending marker until the
 # first verified build produces the archive.
 source=("lmi-kernel-assets-$pkgver-$pkgrel.tar.xz")
-sha512sums=('b4964721c0af934f25259b8a996eb4876dc5b5114b637ec9d8cd41ca026e276c99b9bb07062632e5ee12f639eaf0d08940fc')
+sha512sums=('b4964721c0af934f25259b8a996eb4876dc5b5114b637ec9d8cd41ca026e276c99b9bb07062632e5ee12f639eaf0d08940fc362a7c595b26969a42338e49c32b')
 package() {
   install -d "$pkgdir/boot" "$pkgdir/usr/lib/modules" "$pkgdir/usr/share/licenses/$pkgname"
   cp -a assets/boot/lmi "$pkgdir/boot/"

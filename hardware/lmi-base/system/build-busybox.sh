@@ -1,9 +1,8 @@
 #!/bin/bash
 # Build a static aarch64 busybox from pinned source, for the boot initramfs.
 #   BUSYBOX_VER    upstream version to fetch (e.g. 1.37.0)
-#   BUSYBOX_SHA512 the tarball sha512; empty refuses to build (pin discipline
-#                  as in build-kernel.sh: record it after the first verified
-#                  download, never build from unpinned input)
+#   BUSYBOX_SHA512 tarball sha512; defaults to the value recorded from the
+#                  first verified CI run, overridable for a new source version
 #   BUSYBOX_BUILD  build scratch directory (default $PWD/build/busybox)
 #   CROSS_COMPILE  cross prefix; default aarch64-linux-gnu-, pass an empty
 #                  string to build natively (e.g. inside an aarch64 container)
