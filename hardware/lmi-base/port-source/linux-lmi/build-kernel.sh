@@ -78,8 +78,8 @@ done
 # BTF is disabled above on purpose: it is not consumed on the phone and its
 # vmlinux encoding exhausts the memory of CI-class runners.
 JOBS=${LMI_JOBS:-$(nproc)}
-make O="$BUILD/kernel-out" ARCH=arm64 LLVM=1 -j"$JOBS" Image.gz qcom/sm8250-xiaomi-lmi.dtb modules 2>&1 | tee "$BUILD/kernel-build.log" >/dev/null
-make O="$BUILD/kernel-out" ARCH=arm64 LLVM=1 INSTALL_MOD_PATH="$BUILD/artifacts" INSTALL_MOD_STRIP=1 modules_install 2>&1 | tee -a "$BUILD/kernel-build.log" >/dev/null
+make O="$BUILD/kernel-out" ARCH=arm64 LLVM=1 -j"$JOBS" Image.gz qcom/sm8250-xiaomi-lmi.dtb modules 2>&1 | tee "$BUILD/kernel-build.log"
+make O="$BUILD/kernel-out" ARCH=arm64 LLVM=1 INSTALL_MOD_PATH="$BUILD/artifacts" INSTALL_MOD_STRIP=1 modules_install 2>&1 | tee -a "$BUILD/kernel-build.log"
 cp "$BUILD/kernel-out/arch/arm64/boot/Image.gz" "$BUILD/artifacts/"
 cp "$BUILD/kernel-out/arch/arm64/boot/dts/qcom/sm8250-xiaomi-lmi.dtb" "$BUILD/artifacts/"
 cp "$BUILD/kernel-out/include/config/kernel.release" "$BUILD/artifacts/"
