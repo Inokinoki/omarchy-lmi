@@ -9,7 +9,7 @@
 #                  string to build natively (e.g. inside an aarch64 container)
 set -euo pipefail
 VER=${BUSYBOX_VER:?Set BUSYBOX_VER}
-EXPECTED=${BUSYBOX_SHA512:-}
+EXPECTED=${BUSYBOX_SHA512:-ad8fd06f082699774f990a53d7a73b189ed404fe0a2166aff13eae4d9d8ee5c9239493befe949c98801fe7897520dbff3ed0224faa7205854ce4fa975e18467e}
 BUILD=${BUSYBOX_BUILD:-$PWD/build/busybox}
 CROSS=${CROSS_COMPILE-aarch64-linux-gnu-}
 if [ -n "$CROSS" ] && ! command -v "${CROSS}ar" >/dev/null; then

@@ -17,7 +17,7 @@ COMMIT=999ef8bfd90ca4c214f18ac5d0138bf380386c38
 # The tarball sha512 must be pinned after the first verified download and
 # never left empty for production builds. An empty pin is an explicit
 # pending marker: refuse to build rather than building from unpinned input.
-EXPECTED=${LMI_TARBALL_SHA512:-}
+EXPECTED=${LMI_TARBALL_SHA512:-44011023e747e975620fa2639aa8b47c9f49abf6d4becfba511c44138992ef6fa0a5edf6ac8f2f3f595c9d25c3dffab836a5}
 mkdir -p "$BUILD/downloads" "$BUILD/kernel-out" "$BUILD/artifacts"
 cd "$BUILD/downloads"
 ARCHIVE="linux-$COMMIT.tar.gz"
