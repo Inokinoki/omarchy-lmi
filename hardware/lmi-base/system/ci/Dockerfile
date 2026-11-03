@@ -1,8 +1,10 @@
 # Arm64 build image for the local package set and the base rootfs. Built on the
 # verified Arch Linux ARM bootstrap (bootstrap-alarm.sh); signature checking
-# stays on in pacman.
+# stays on in pacman; only its download sandbox is off, because Landlock cannot
+# be applied inside docker build or the privileged build container.
 FROM alarm-base:latest
-RUN pacman-key --init && pacman-key --populate archlinuxarm \
+RUN sed -i '/^\[options\]/a DisableSandbox' /etc/pacman.conf \
+ && pacman-key --init && pacman-key --populate archlinuxarm \
  && pacman -Syu --noconfirm --needed base-devel arch-install-scripts squashfs-tools \
       git python meson ninja cpio zstd \
  && pacman -Scc --noconfirm \

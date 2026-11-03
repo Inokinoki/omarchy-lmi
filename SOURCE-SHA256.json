@@ -102,7 +102,7 @@
  "hardware/lmi-base/system/build-bootimg.sh": "9cd2697460208b993132d750e8c3da52afd528422230c496606e13f7fa918316",
  "hardware/lmi-base/system/build-busybox.sh": "2f2455573306710a85f6538bbf3fffeb0e786ed558bf0a52de266ff876c0f50b",
  "hardware/lmi-base/system/build-initramfs.sh": "803e37da3b047d39ada706a37c654cecf0516356a5e82c013e9000613b4a469b",
- "hardware/lmi-base/system/ci/Dockerfile": "7b53bd301260dbc9c81436048e601af962339319ec51e9e4f5fbdc8a59a2519e",
+ "hardware/lmi-base/system/ci/Dockerfile": "49115d14fd792022a4ee522731921c2fc80fccf6133354939dff6b0976a36180",
  "hardware/lmi-base/system/ci/bootstrap-alarm.sh": "abb8d76e92296eda5b2b758648d1dd4ab2a173d86c25af4bbc078cac6886b125",
  "hardware/lmi-base/system/ci/in-container.sh": "19eedc8ef7f376b9fd7ff95fff457997fc23559754a42970b9005dcbf7a382e5",
  "hardware/lmi-base/system/install-persistent": "841e1155dd6e0ccf9360316bc22b4486a6eac7eadfdae65479db77748c2d094b",
